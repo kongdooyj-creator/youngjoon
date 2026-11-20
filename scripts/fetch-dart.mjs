@@ -11,16 +11,20 @@ export const COMPANIES=[
  {co:'sungho',stock:'043260',corp:'00317210',name:'성호전자'}];
 export const DAYS=100;            // Worker가 90일로 다시 자른다
 export const HEARTBEAT_MS=3*3600000; // 내용이 같아도 3시간이 지났으면 확인 시각(at)을 새로 저장
+// 2026-11-20 평판 지수용 이력 파일: 2026-05-01부터의 공시 전체. 6시간에 한 번만 다시 받는다(하루 3~4회).
+export const HISTORY_FROM='20260501';
+export const HISTORY_OUT='data/disclosures-history.json';
+export const HISTORY_EVERY_MS=6*3600000;
 const API='https://opendart.fss.or.kr/api/list.json';
 const OUT='data/disclosures.json';
 
 const kstDate=(ms)=>new Date(ms+9*3600000).toISOString().slice(0,10).replaceAll('-','');
 
 // 회사 하나의 최근 공시 목록(여러 쪽이면 최대 5쪽). status 013 = 공시 없음.
-export async function fetchCompany(fetchFn,key,c,now=Date.now()){
+export async function fetchCompany(fetchFn,key,c,now=Date.now(),{from='',maxPages=5}={}){
  const rows=[];
- for(let page=1;page<=5;page++){
-  const q=new URLSearchParams({crtfc_key:key,corp_code:c.corp,bgn_de:kstDate(now-DAYS*86400000),end_de:kstDate(now),page_no:String(page),page_count:'100'});
+ for(let page=1;page<=maxPages;page++){
+  const q=new URLSearchParams({crtfc_key:key,corp_code:c.corp,bgn_de:from||kstDate(now-DAYS*86400000),end_de:kstDate(now),page_no:String(page),page_count:'100'});
   let res,err;
   for(let t=0;t<2&&!res;t++){try{res=await fetchFn(API+'?'+q,{signal:AbortSignal.timeout(15000)});if(!res.ok){err=Error(c.name+' HTTP '+res.status);res=null;}}catch(e){err=e;}}
   if(!res)throw err;
@@ -39,6 +43,19 @@ export function buildOutput(old,companies,now=Date.now()){
  return {at:new Date(now).toISOString(),source:'OpenDART list.json',days:DAYS,companies};
 }
 
+// 이력 파일을 다시 받을 때인지: 파일이 없거나, 시작일이 바뀌었거나, 마지막 확인이 6시간을 넘었을 때.
+export function needHistory(old,now=Date.now()){
+ return !old||old.from!==HISTORY_FROM||!Date.parse(old.at)||now-Date.parse(old.at)>=HISTORY_EVERY_MS;
+}
+export async function fetchHistory(fetchFn,key,now=Date.now()){
+ const companies={};
+ for(const c of COMPANIES){
+  const rows=await fetchCompany(fetchFn,key,c,now,{from:HISTORY_FROM,maxPages:20});
+  companies[c.stock]={co:c.co,name:c.name,corp_code:c.corp,rows};
+ }
+ return {at:new Date(now).toISOString(),source:'OpenDART list.json',from:HISTORY_FROM,companies};
+}
+
 async function main(){
  const key=process.env.DART_API_KEY;
  // 키를 넣기 전에는 실패 메일이 30분마다 쌓이지 않게 경고만 남기고 끝낸다.
@@ -49,6 +66,16 @@ async function main(){
   companies[c.stock]={co:c.co,name:c.name,corp_code:c.corp,rows};
   console.log(`${c.name}: ${rows.length}건`);
  }
+ // 이력 파일(평판 지수용): 실패해도 '최근 공시' 파일 갱신은 그대로 한다.
+ try{
+  let oldH=null;try{oldH=JSON.parse(await readFile(HISTORY_OUT,'utf8'));}catch{}
+  if(needHistory(oldH)){
+   const h=await fetchHistory(fetch,key);
+   await mkdir('data',{recursive:true});
+   await writeFile(HISTORY_OUT,JSON.stringify(h,null,1)+'\n');
+   console.log('이력 저장: '+HISTORY_OUT+' ('+Object.values(h.companies).map(c=>c.name+' '+c.rows.length+'건').join(', ')+')');
+  }
+ }catch(e){console.log('::warning::이력 파일을 만들지 못했습니다: '+String(e.message||e).replaceAll(key,'***'));}
  let old=null;try{old=JSON.parse(await readFile(OUT,'utf8'));}catch{}
  const out=buildOutput(old,companies);
  if(!out){console.log('변경 없음');return;}
