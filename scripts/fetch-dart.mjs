@@ -41,10 +41,11 @@ export function listedNames(xml){
  return [...out].sort();
 }
 export async function fetchListed(fetchFn,key,now=Date.now()){
- let res,err;
- for(let t=0;t<2&&!res;t++){try{res=await fetchFn(CORP_API+'?'+new URLSearchParams({crtfc_key:key}),{signal:AbortSignal.timeout(60000)});if(!res.ok){err=Error('corpCode HTTP '+res.status);res=null;}}catch(e){err=e;}}
- if(!res)throw err;
- const names=listedNames(unzipFirst(await res.arrayBuffer()).toString('utf8'));
+ // 2026-11-25 운영 첫 실행: 60초 안에 다 못 받아 실패 → 한 번에 넉넉히(본문까지) 받는다.
+ let buf,err;
+ try{const res=await fetchFn(CORP_API+'?'+new URLSearchParams({crtfc_key:key}),{signal:AbortSignal.timeout(170000)});if(!res.ok)throw Error('corpCode HTTP '+res.status);buf=await res.arrayBuffer();}catch(e){err=e;}
+ if(!buf)throw err;
+ const names=listedNames(unzipFirst(buf).toString('utf8'));
  if(names.length<1000)throw Error('상장사 목록이 너무 적음('+names.length+')');
  return {at:new Date(now).toISOString(),source:'OpenDART corpCode(종목코드 있는 회사)',n:names.length,names};
 }
@@ -109,16 +110,16 @@ async function main(){
    console.log('이력 저장: '+HISTORY_OUT+' ('+Object.values(h.companies).map(c=>c.name+' '+c.rows.length+'건').join(', ')+')');
   }
  }catch(e){console.log('::warning::이력 파일을 만들지 못했습니다: '+String(e.message||e).replaceAll(key,'***'));}
- // 상장사 이름 목록(7일에 한 번). 실패해도 공시 파일 갱신은 그대로 한다.
- try{
-  let oldL=null;try{oldL=JSON.parse(await readFile(LISTED_OUT,'utf8'));}catch{}
-  if(needListed(oldL)){const l=await fetchListed(fetch,key);await mkdir('data',{recursive:true});await writeFile(LISTED_OUT,JSON.stringify(l)+'\n');console.log('상장사 목록 저장: '+l.n+'곳');}
- }catch(e){console.log('::warning::상장사 목록을 만들지 못했습니다: '+String(e.message||e).replaceAll(key,'***'));}
  let old=null;try{old=JSON.parse(await readFile(OUT,'utf8'));}catch{}
  const out=buildOutput(old,companies);
- if(!out){console.log('변경 없음');return;}
- await mkdir('data',{recursive:true});
- await writeFile(OUT,JSON.stringify(out,null,1)+'\n');
- console.log('저장: '+OUT);
+ if(!out)console.log('변경 없음');
+ else{await mkdir('data',{recursive:true});await writeFile(OUT,JSON.stringify(out,null,1)+'\n');console.log('저장: '+OUT);}
+ // 상장사 이름 목록(7일에 한 번) — 공시 파일을 먼저 저장한 뒤 맨 끝에. 받는 데 오래 걸려 매일 밤 실행(22:17)과 수동 실행에서만 한다. 실패해도 공시 갱신에는 영향 없음.
+ try{
+  let oldL=null;try{oldL=JSON.parse(await readFile(LISTED_OUT,'utf8'));}catch{}
+  if(needListed(oldL)&&listedSlot()){const l=await fetchListed(fetch,key);await mkdir('data',{recursive:true});await writeFile(LISTED_OUT,JSON.stringify(l)+'\n');console.log('상장사 목록 저장: '+l.n+'곳');}
+ }catch(e){console.log('::warning::상장사 목록을 만들지 못했습니다: '+String(e.message||e).replaceAll(key,'***'));}
 }
+// 상장사 목록을 받는 때: 수동 실행(workflow_dispatch) 또는 한국 시각 22시대(매일 밤 22:17 실행)
+export function listedSlot(env=process.env,now=Date.now()){return env.GITHUB_EVENT_NAME==='workflow_dispatch'||new Date(now+9*3600000).getUTCHours()===22;}
 if(import.meta.url===pathToFileURL(process.argv[1]||'').href)main().catch(e=>{console.error(String(e.message||e).replaceAll(process.env.DART_API_KEY||'\u0000','***'));process.exit(1);});
