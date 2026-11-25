@@ -5,6 +5,7 @@
 // 원본: finger-ir-dashboard/dart-relay/ (PC 저장소). GitHub youngjoon 저장소에는 같은 파일을 올린다.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
+import {inflateRawSync} from 'node:zlib';
 
 export const COMPANIES=[
  {co:'finger',stock:'163730',corp:'01142075',name:'핑거'},
@@ -15,6 +16,38 @@ export const HEARTBEAT_MS=3*3600000; // 내용이 같아도 3시간이 지났으
 export const HISTORY_FROM='20260501';
 export const HISTORY_OUT='data/disclosures-history.json';
 export const HISTORY_EVERY_MS=6*3600000;
+// 2026-11-25 평판 2차 1단계: 상장사 이름 목록(기사 관련도 '다른 상장사 3곳 이상이면 단순 언급' 규칙용). 7일에 한 번.
+// OpenDART 고유번호 파일(corpCode.xml, zip)에서 종목코드가 있는 회사 이름만 뽑는다. 담는 것은 공개된 회사 이름뿐이다(개인 정보 없음).
+export const LISTED_OUT='data/listed-companies.json';
+export const LISTED_EVERY_MS=7*86400000;
+const CORP_API='https://opendart.fss.or.kr/api/corpCode.xml';
+export function needListed(old,now=Date.now()){return !old||!Array.isArray(old.names)||!(now-Date.parse(old.at||0)<LISTED_EVERY_MS);}
+// zip(중앙 디렉터리 기준)에서 첫 파일을 꺼낸다(저장 0 또는 deflate 8).
+export function unzipFirst(buf){
+ const b=Buffer.from(buf);let e=-1;for(let i=b.length-22;i>=Math.max(0,b.length-70000);i--)if(b.readUInt32LE(i)===0x06054b50){e=i;break;}
+ if(e<0)throw Error('zip 끝 표시 없음');
+ const cd=b.readUInt32LE(e+16);if(b.readUInt32LE(cd)!==0x02014b50)throw Error('zip 목록 없음');
+ const method=b.readUInt16LE(cd+10),size=b.readUInt32LE(cd+20),off=b.readUInt32LE(cd+42);
+ if(b.readUInt32LE(off)!==0x04034b50)throw Error('zip 파일 머리 없음');
+ const start=off+30+b.readUInt16LE(off+26)+b.readUInt16LE(off+28),data=b.subarray(start,start+size);
+ if(method===0)return data;if(method===8)return inflateRawSync(data);throw Error('zip 압축 방식 '+method);
+}
+export function listedNames(xml){
+ const out=new Set();
+ for(const m of String(xml).matchAll(/<list>([\s\S]*?)<\/list>/g)){
+  const name=(m[1].match(/<corp_name>([^<]*)<\/corp_name>/)||[])[1],code=((m[1].match(/<stock_code>([^<]*)<\/stock_code>/)||[])[1]||'').trim();
+  if(name&&/^[0-9A-Z]{6}$/.test(code))out.add(name.trim().replace(/&amp;/g,'&'));
+ }
+ return [...out].sort();
+}
+export async function fetchListed(fetchFn,key,now=Date.now()){
+ let res,err;
+ for(let t=0;t<2&&!res;t++){try{res=await fetchFn(CORP_API+'?'+new URLSearchParams({crtfc_key:key}),{signal:AbortSignal.timeout(60000)});if(!res.ok){err=Error('corpCode HTTP '+res.status);res=null;}}catch(e){err=e;}}
+ if(!res)throw err;
+ const names=listedNames(unzipFirst(await res.arrayBuffer()).toString('utf8'));
+ if(names.length<1000)throw Error('상장사 목록이 너무 적음('+names.length+')');
+ return {at:new Date(now).toISOString(),source:'OpenDART corpCode(종목코드 있는 회사)',n:names.length,names};
+}
 const API='https://opendart.fss.or.kr/api/list.json';
 const OUT='data/disclosures.json';
 
@@ -76,6 +109,11 @@ async function main(){
    console.log('이력 저장: '+HISTORY_OUT+' ('+Object.values(h.companies).map(c=>c.name+' '+c.rows.length+'건').join(', ')+')');
   }
  }catch(e){console.log('::warning::이력 파일을 만들지 못했습니다: '+String(e.message||e).replaceAll(key,'***'));}
+ // 상장사 이름 목록(7일에 한 번). 실패해도 공시 파일 갱신은 그대로 한다.
+ try{
+  let oldL=null;try{oldL=JSON.parse(await readFile(LISTED_OUT,'utf8'));}catch{}
+  if(needListed(oldL)){const l=await fetchListed(fetch,key);await mkdir('data',{recursive:true});await writeFile(LISTED_OUT,JSON.stringify(l)+'\n');console.log('상장사 목록 저장: '+l.n+'곳');}
+ }catch(e){console.log('::warning::상장사 목록을 만들지 못했습니다: '+String(e.message||e).replaceAll(key,'***'));}
  let old=null;try{old=JSON.parse(await readFile(OUT,'utf8'));}catch{}
  const out=buildOutput(old,companies);
  if(!out){console.log('변경 없음');return;}
