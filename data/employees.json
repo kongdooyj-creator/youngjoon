@@ -1,0 +1,271 @@
+{
+ "at": "2026-11-27T08:35:05.984Z",
+ "source": "OpenDART empSttus.json(정기보고서 직원 현황 — 회사 합계만)",
+ "from": 2024,
+ "companies": {
+  "163730": {
+   "co": "finger",
+   "name": "핑거",
+   "reports": [
+    {
+     "no": "20240514001574",
+     "date": "2024-05-14",
+     "year": 2024,
+     "code": "11013",
+     "label": "2024년 1분기보고서",
+     "total": 254,
+     "regular": 254,
+     "contract": 0,
+     "tenure": 4.2,
+     "salaryAvg": 18543307
+    },
+    {
+     "no": "20240912000504",
+     "date": "2024-09-12",
+     "year": 2024,
+     "code": "11012",
+     "label": "2024년 반기보고서",
+     "total": 267,
+     "regular": 267,
+     "contract": 0,
+     "tenure": 4.3,
+     "salaryAvg": 34116105
+    },
+    {
+     "no": "20241114002850",
+     "date": "2024-11-14",
+     "year": 2024,
+     "code": "11014",
+     "label": "2024년 3분기보고서",
+     "total": 275,
+     "regular": 275,
+     "contract": 0,
+     "tenure": 4.2,
+     "salaryAvg": 50360000
+    },
+    {
+     "no": "20250317000742",
+     "date": "2025-03-17",
+     "year": 2024,
+     "code": "11011",
+     "label": "2024년 사업보고서",
+     "total": 270,
+     "regular": 270,
+     "contract": 0,
+     "tenure": 4.5,
+     "salaryAvg": 67511111
+    },
+    {
+     "no": "20250515000382",
+     "date": "2025-05-15",
+     "year": 2025,
+     "code": "11013",
+     "label": "2025년 1분기보고서",
+     "total": 302,
+     "regular": 302,
+     "contract": 0,
+     "tenure": 4.2,
+     "salaryAvg": 17887417
+    },
+    {
+     "no": "20250814001532",
+     "date": "2025-08-14",
+     "year": 2025,
+     "code": "11012",
+     "label": "2025년 반기보고서",
+     "total": 314,
+     "regular": 314,
+     "contract": 0,
+     "tenure": 4.2,
+     "salaryAvg": 33060510
+    },
+    {
+     "no": "20251114000199",
+     "date": "2025-11-14",
+     "year": 2025,
+     "code": "11014",
+     "label": "2025년 3분기보고서",
+     "total": 295,
+     "regular": 295,
+     "contract": 0,
+     "tenure": 4.5,
+     "salaryAvg": 52227119
+    },
+    {
+     "no": "20260323001250",
+     "date": "2026-03-23",
+     "year": 2025,
+     "code": "11011",
+     "label": "2025년 사업보고서",
+     "total": 295,
+     "regular": 295,
+     "contract": 0,
+     "tenure": 4.6,
+     "salaryAvg": 69288136
+    },
+    {
+     "no": "20260515001975",
+     "date": "2026-05-15",
+     "year": 2026,
+     "code": "11013",
+     "label": "2026년 1분기보고서",
+     "total": 296,
+     "regular": 296,
+     "contract": 0,
+     "tenure": 4.8,
+     "salaryAvg": 20175676
+    },
+    {
+     "no": "20260814003937",
+     "date": "2026-08-14",
+     "year": 2026,
+     "code": "11012",
+     "label": "2026년 반기보고서",
+     "total": 303,
+     "regular": 303,
+     "contract": 0,
+     "tenure": 4.9,
+     "salaryAvg": 36597360
+    }
+   ]
+  },
+  "043260": {
+   "co": "sungho",
+   "name": "성호전자",
+   "reports": [
+    {
+     "no": "20240516000396",
+     "date": "2024-05-16",
+     "year": 2024,
+     "code": "11013",
+     "label": "2024년 1분기보고서",
+     "total": 94,
+     "regular": 94,
+     "contract": 0,
+     "tenure": 6.7,
+     "salaryAvg": 3947660
+    },
+    {
+     "no": "20240814002619",
+     "date": "2024-08-14",
+     "year": 2024,
+     "code": "11012",
+     "label": "2024년 반기보고서",
+     "total": 89,
+     "regular": 89,
+     "contract": 0,
+     "tenure": 7.1,
+     "salaryAvg": 4073270
+    },
+    {
+     "no": "20241114001000",
+     "date": "2024-11-14",
+     "year": 2024,
+     "code": "11014",
+     "label": "2024년 3분기보고서",
+     "total": 89,
+     "regular": 89,
+     "contract": 0,
+     "tenure": 6.5,
+     "salaryAvg": 3908787
+    },
+    {
+     "no": "20250321001917",
+     "date": "2025-03-21",
+     "year": 2024,
+     "code": "11011",
+     "label": "2024년 사업보고서",
+     "total": 92,
+     "regular": 92,
+     "contract": 0,
+     "tenure": 7.1,
+     "salaryAvg": 52885239
+    },
+    {
+     "no": "20250515001150",
+     "date": "2025-05-15",
+     "year": 2025,
+     "code": "11013",
+     "label": "2025년 1분기보고서",
+     "total": 92,
+     "regular": 92,
+     "contract": 0,
+     "tenure": 7.1,
+     "salaryAvg": 14010533
+    },
+    {
+     "no": "20250814003950",
+     "date": "2025-08-14",
+     "year": 2025,
+     "code": "11012",
+     "label": "2025년 반기보고서",
+     "total": 93,
+     "regular": 92,
+     "contract": 1,
+     "tenure": 6.8,
+     "salaryAvg": 28060688
+    },
+    {
+     "no": "20251114002103",
+     "date": "2025-11-14",
+     "year": 2025,
+     "code": "11014",
+     "label": "2025년 3분기보고서",
+     "total": 96,
+     "regular": 93,
+     "contract": 3,
+     "tenure": 6.4,
+     "salaryAvg": 40542979
+    },
+    {
+     "no": "20260320001361",
+     "date": "2026-03-20",
+     "year": 2025,
+     "code": "11011",
+     "label": "2025년 사업보고서",
+     "total": 86,
+     "regular": 85,
+     "contract": 1,
+     "tenure": 6.2,
+     "salaryAvg": 50354860
+    },
+    {
+     "no": "20260609000348",
+     "date": "2026-06-09",
+     "year": 2026,
+     "code": "11013",
+     "label": "2026년 1분기보고서",
+     "total": 101,
+     "regular": 98,
+     "contract": 3,
+     "tenure": 6.1,
+     "salaryAvg": 13953861
+    },
+    {
+     "no": "20260814003108",
+     "date": "2026-08-14",
+     "year": 2026,
+     "code": "11012",
+     "label": "2026년 반기보고서",
+     "total": 89,
+     "regular": 88,
+     "contract": 1,
+     "tenure": 6.1,
+     "salaryAvg": 25343292
+    },
+    {
+     "no": "20261116001759",
+     "date": "2026-11-16",
+     "year": 2026,
+     "code": "11014",
+     "label": "2026년 3분기보고서",
+     "total": 88,
+     "regular": 87,
+     "contract": 1,
+     "tenure": 5.9,
+     "salaryAvg": 36078580
+    }
+   ]
+  }
+ }
+}
