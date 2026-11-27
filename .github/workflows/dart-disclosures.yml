@@ -26,7 +26,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/disclosures.json data/disclosures-history.json data/listed-companies.json 2>/dev/null || git add data/disclosures.json data/disclosures-history.json 2>/dev/null || git add data/disclosures.json 2>/dev/null || exit 0
+          for f in data/disclosures.json data/disclosures-history.json data/listed-companies.json data/employees.json; do [ -f "$f" ] && git add "$f"; done
           git diff --cached --quiet && exit 0
           git commit -m "DART 공시 갱신"
           git push
